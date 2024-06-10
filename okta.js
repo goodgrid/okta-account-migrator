@@ -1,13 +1,11 @@
 import axios from "axios";
 import { logger } from './utils.js'
 
-const okta = axios.create()
-
 const Okta = {
     testdata: {
         createTestUser: async (oktaInstance, user, password) => {
             try {
-                return await okta.post(`${oktaInstance.baseUrl}/users?activate=true`, {
+                return await axios.post(`${oktaInstance.baseUrl}/users?activate=true`, {
                     ...user,
                     credentials: {
                         password : {
@@ -29,7 +27,7 @@ const Okta = {
     user: {
         create: async (oktaInstance, user) => {
             try {
-                return await okta.post(`${oktaInstance.baseUrl}/users?activate=true`, {
+                return await axios.post(`${oktaInstance.baseUrl}/users?activate=true`, {
                     ...user,
                     credentials: {
                         password : {
@@ -50,7 +48,7 @@ const Okta = {
         },
         authenticate: async (oktaInstance, credential) => {
             try {
-                const response = await okta.post(`${oktaInstance.baseUrl}/authn`, {
+                const response = await axios.post(`${oktaInstance.baseUrl}/authn`, {
                     username: credential.username,
                     password: credential.password
                 })
@@ -64,7 +62,7 @@ const Okta = {
             } catch(error) {
                 if (error.response && error.response.status === 401) {
                     /*
-                        This is a common outcome and not handles as a error
+                        This is a common outcome and not handled as a error
                     */
                     return false
                 } else {

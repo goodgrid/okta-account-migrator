@@ -11,7 +11,7 @@ const config = {
             token: process.env.OKTA_TARGET_TOKEN,
             hookAuthentication: {
                 header: "authorization",
-                secret: OKTA_TARGET_SECRET
+                secret: process.env.OKTA_TARGET_SECRET
             }
         }
     }

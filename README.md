@@ -37,4 +37,4 @@ _To Do_
 
 - https://developer.okta.com/docs/reference/password-hook/
 - https://developer.okta.com/docs/guides/password-import-inline-hook/nodejs/main/
-
+- https://www.okta.com/sites/default/files/2021-02/WPR_Okta-User-Migration-Guide.pdf

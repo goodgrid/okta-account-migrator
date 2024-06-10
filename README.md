@@ -12,6 +12,11 @@ The new account at the target Okta is configured to import the password from the
 
 After logging in to the target Okta, the user will be required to set up any other required authenticators as the account is newly created and second factors at the source Okta have not been migrated.
 
+## Overview
+
+The below diagram aimes to depict that credentials entered by a newly migrated user are checked against the source Okta. If authentication succeeeds, the password is stored in the target Okta, and the user is granted access. The next time the user logs in, the password will be checked against the target Okta.
+
+![alt text](overview.png "Title")
 
 
 

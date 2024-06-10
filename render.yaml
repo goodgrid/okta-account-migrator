@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: Okta Account Migrator
+    env: node
+    plan: starter
+    buildCommand: yarn install && yarn build    
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production

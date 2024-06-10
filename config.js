@@ -7,7 +7,7 @@ const config = {
             allowedStatusses: ["SUCCESS", "MFA_ENROLL"]
         },
         target: {
-            baseUrl: process.env.OKTA_SOURCE_BASEURL,
+            baseUrl: process.env.OKTA_TARGET_BASEURL,
             token: process.env.OKTA_TARGET_TOKEN,
             hookAuthentication: {
                 header: "authorization",

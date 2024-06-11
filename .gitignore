@@ -1,5 +1,4 @@
 node_modules
-test.js
 *.http
 package-lock.json
 dev-variables.txt

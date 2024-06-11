@@ -1,0 +1,6 @@
+/node_modules/
+dev-variables.txt
+*.http
+package-lock.json
+.DS_Store
+aws-beanstalk-app-bundle.json

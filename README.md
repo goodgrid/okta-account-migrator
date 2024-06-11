@@ -21,7 +21,7 @@ The below diagram aimes to depict that credentials entered by a newly migrated u
 
 
 
-## Issues and To do items
+## Open issues
 
 _Issues_
 
@@ -29,6 +29,7 @@ _Issues_
 
 _To Do_
 
+- Implement HTTPS/TLS in Express
 - Implement actual moving of accounts via batches and creation of CSV
 - Implement Helmet for web server hardening 
 

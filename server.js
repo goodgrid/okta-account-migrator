@@ -1,3 +1,4 @@
+import https from 'https'
 import express from "express";
 import Okta from "./okta.js";
 import { logger } from "./utils.js";
@@ -35,7 +36,14 @@ app.post("/okta-account-migrator", express.json(), async (req, res) => {
     }
 })
 
-app.listen(3000, () => logger('Server is started and listening on port 3000.'));
+const serverOptions = {
+   key: Buffer.from(config.server.key, 'base64').toString('utf8'),
+   cert: Buffer.from(config.server.cert, 'base64').toString('utf8')
+}
+
+const server = https.createServer(serverOptions, app)
+
+server.listen(config.server.port, () => logger(`Server is started and listening on port ${config.server.port}.`));
 
 /*
    This function determines whether to process the request or ignore it and send an error status. These

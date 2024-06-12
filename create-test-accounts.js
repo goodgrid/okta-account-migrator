@@ -7,6 +7,8 @@ if (process.argv.length < 4) {
 } else {
 
     const login = process.argv[2]
+    const password = process.argv[3]
+
 
     const user = {
         "profile": {

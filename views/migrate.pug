@@ -1,0 +1,43 @@
+doctype html
+html
+  head
+    meta(charset='UTF-8')
+    title Okta Account Migrator
+
+    link(rel='preconnect', href='https://fonts.googleapis.com')
+    link(rel='preconnect', href='https://fonts.gstatic.com', crossorigin)
+    link(href='https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&display=swap', rel='stylesheet')
+
+    link(rel='stylesheet', href='/styles.css')
+  body
+    header
+      a(href='/')
+        h1 Okta Account Migrator
+
+    section#sidebar
+      div.actions
+        p
+            a(href='/') Introduction
+            
+        p
+            a(href='/migrate') Migrate batch
+
+    main#content
+        h2 Migrate batch
+
+        p Migrate a batch of accounts from the Okta source instance to the Okta target instance by entering the batch size (default is 100) and clicking "Start".
+
+        p Congfiguration defines that accounts are migrated from !{servers.source} to !{servers.target}.
+
+        form(
+          action='/migrate',
+          method='POST',
+          hx-post='/migrate',
+        )
+          label(for='batchSize') Batch size:
+          input#name(type='text', name='batchSize', value='100', required)
+
+          div.actions
+            button(type='submit') Start
+
+    script(src='https://unpkg.com/htmx.org@1.9.10')

@@ -19,6 +19,14 @@ The below diagram aimes to depict that credentials entered by a newly migrated u
 ![alt text](overview.png "Title")
 
 
+## Security
+
+This project is designed with security as primary focus. There is as little TLS termination as possible and the project itself implements end-to-end encryption. This means that:
+- The user enters their credentials at the target login screen provided by Okta. Obviously, communication between the users client and the Okta server is encrypted using TLS.
+- Okta receives the credentials as it always does. Instead of checking the credentials against the Okta Universal Directory, the credentials are sent to Okta Account Migrator. Okta Account Migrator contains an embedded Express webserver configured to terminate TLS. This means that surrounding infrastructure *does not* terminate TLS and will not send credentials unencrypted over the internal network. Credentials are sent from the target Okta instance to Okta Account Migrator end-to-end encrypted.
+- Okta Account Migrator sets up a TLS encrypted connection to the API at the source Okta instance and verifies the credentials over this connection. Credentials are never logged and only processed in memory for as long as the verification takes.
+
+
 
 
 ## Open issues
@@ -29,10 +37,13 @@ _Issues_
 
 _To Do_
 
-- Implement HTTPS/TLS in Express
+- Implement code verification using Node.js SEA or code signing
 - Implement actual moving of accounts via batches and creation of CSV
 - Implement Helmet for web server hardening 
+- Decommission accounts at the source Okta instance after succesful verification
 
+(done)
+- ✅ Implement HTTPS/TLS in Express
 
 ## References
 

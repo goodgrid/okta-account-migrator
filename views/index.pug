@@ -1,0 +1,39 @@
+doctype html
+html
+  head
+    meta(charset='UTF-8')
+    title Okta Account Migrator
+
+    link(rel='preconnect', href='https://fonts.googleapis.com')
+    link(rel='preconnect', href='https://fonts.gstatic.com', crossorigin)
+    link(href='https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&display=swap', rel='stylesheet')
+
+    link(rel='stylesheet', href='/styles.css')
+  body
+    header
+      a(href='/')
+        h1 Okta Account Migrator
+
+    section#sidebar
+      div.actions
+        p
+            a(href='/') Introduction
+
+        p
+            a(href='/migrate') Migrate batch
+
+
+    main#content
+        h2 Introduction
+        p Okta Account Migrator allows you to transfer accounts from one Okta instance to another Okta instance. Accounts are recreated at the target instance and their status is set to trigger an inline hook upon their first log-in attempt at the target Okta instance. The inline hook verifies their credentials at the source Okta instance before storing the succesfully verified password at the target instance.
+
+        p Accounts are migrated in batches of a defined size. For every batch, the accounts from the source Okta instance are created at the target Okta instance as described above. Additionally, a CSV file is provided listing the migrated accounts. This data can be used to inform the involved users about their ability to log into the target Okta instance.
+
+        p Optionally, accounts can be deactivated automatically after succesfully moving the password from source to target.
+
+        p Further technical documentation is available at 
+            a(href="https://github.com/goodgrid/okta-account-migrator/blob/main/README.md") Github
+                
+    
+
+    script(src='https://unpkg.com/htmx.org@2')

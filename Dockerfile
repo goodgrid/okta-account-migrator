@@ -19,3 +19,5 @@ RUN npm install
 COPY . .
 
 ENTRYPOINT ["./entrypoint.sh"]
+
+EXPOSE 443

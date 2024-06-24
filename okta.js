@@ -25,10 +25,24 @@ const Okta = {
         }
     },
     user: {
+        list: async (oktaInstance, batchSize) => {
+            try {
+                const response = await axios.get(`${oktaInstance.baseUrl}/users?limit=${batchSize}`, {
+                    headers: {
+                        Authorization: `SSWS ${oktaInstance.token}`,
+                        "okta-response": "omitCredentials,omitCredentialsLinks, omitTransitioningToStatus"
+                    }
+                })
+                return response.data
+            } catch(error) {
+                logger(`An error occured while listing users`)
+                console.error(error.response ? error.response.data : error)
+            }
+        },
         create: async (oktaInstance, user) => {
             try {
-                return await axios.post(`${oktaInstance.baseUrl}/users?activate=true`, {
-                    ...user,
+                const response =  await axios.post(`${oktaInstance.baseUrl}/users?activate=true`, {
+                    profile: user,
                     credentials: {
                         password : {
                             hook: {
@@ -40,10 +54,24 @@ const Okta = {
                     headers: {
                         Authorization: `SSWS ${oktaInstance.token}`
                     }
-                })    
+                })   
+                return {
+                    status: "CREATED",
+                    data: {
+                        id: response.data.id
+                    }
+                }
             } catch(error) {
-                logger(`An error occured while creating hooked user`)
+                logger(`An exception occured while creating hooked user`)
                 console.error(error.response ? error.response.data : error)
+
+                return {
+                    status: "NOT_CREATED",
+                    data: {
+                        errors: error.response.data.errorCauses.map(cause => cause.errorSummary).join(", ")
+                    }
+                }
+
             }
         },
         authenticate: async (oktaInstance, credential) => {
@@ -53,7 +81,7 @@ const Okta = {
                     password: credential.password
                 })
 
-                if (oktaInstance.allowedStatusses.indexOf(response.data.status) > -1) {
+                if (oktaInstance.allowedAuthStatusses.indexOf(response.data.status) > -1) {
                     return true
                 }
                 logger(`Verification failed due to account status ${response.data.status}`)

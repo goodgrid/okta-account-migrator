@@ -19,9 +19,7 @@ if (process.argv.length < 4) {
         }
     }
 
-    const result1 = await Okta.user.create(config.oktaInstances.target, user)
-    console.log(result1.data)
-
-    const result2 = await Okta.testdata.createTestUser(config.oktaInstances.source, user, password)
+    
+    const result2 = await Okta.testdata.createTestUser(config.source, user, password)
     console.log(result2.data)
 }

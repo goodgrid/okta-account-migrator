@@ -1,11 +1,12 @@
 import { stringify } from "csv-stringify/sync"
-import Okta from "./okta.js"
+import Okta from "./target.js"
+import source from "./sources/sources.js"
 import config from "./config.js"
 
 export const logger = (message) => {
-    console.log(`${new Date().toLocaleString("nl-NL", {
-        timeZone: config.timeZone
-      })} - ${message}`)
+  console.log(`${new Date().toLocaleString("nl-NL", {
+    timeZone: config.timeZone
+  })} - ${message}`)
 }
 
 
@@ -19,30 +20,30 @@ export const logger = (message) => {
    3) Only hooks originating from the knows Target Okta are processed. Any other is ignored.
 */
 export const isValidRequest = (req) => {
-   
-  if (req.headers[config.oktaInstances.target.hookAuthentication.header] !== config.oktaInstances.target.hookAuthentication.secret) {
-     logger("Hook received with unagreed shared secret or missing header", config.oktaInstances.target.hookAuthentication.header)
-     return false
+
+  if (req.headers[config.target.hookAuthentication.header] !== config.target.hookAuthentication.secret) {
+    logger("Hook received with unagreed shared secret or missing header", config.target.hookAuthentication.header)
+    return false
   }
 
   if (req.body.eventType !== "com.okta.user.credential.password.import") {
-     logger("Hook received of unknown type", req.body.eventType)
-     return false
+    logger("Hook received of unknown type", req.body.eventType)
+    return false
   }
 
-  if (req.body.source.match(`^${config.oktaInstances.target.baseUrl}`) === null) {
-     logger("Hook from unknown source received", req.body.source)
-     return false
+  if (req.body.source.match(`^${config.target.baseUrl}`) === null) {
+    logger("Hook from unknown source received", req.body.source)
+    return false
   }
   return true
 }
 
 /*
-  If no basic authentication headers are present, return a the headers indicating that authentication
-  is required. If headers are present, parse them and verify the credentials against the configured
-  credentials.
+    If no basic authentication headers are present, return a the headers indicating that authentication
+    is required. If headers are present, parse them and verify the credentials against the configured
+    credentials.
 
-  This is Express middleware called in every route requiring authentication.
+    This is Express middleware called in every route requiring authentication.
 */
 export const authenticateRequest = (req, res, next) => {
   const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
@@ -56,8 +57,6 @@ export const authenticateRequest = (req, res, next) => {
   res.status(401).send('Authentication required.')
 }
 
-
-
 export const migrateUsers = async (batchSize) => {
 
   const csvOptions = {
@@ -65,21 +64,47 @@ export const migrateUsers = async (batchSize) => {
     delimiter: ";"
   }
 
-  const accounts = await Okta.user.list(config.oktaInstances.source, batchSize)
-  
+  /*
+    All accounts are retrieved from the backlog. This is a method exposed by the 
+    source plugin implementation. The backlog is looped over and for every account
+    the account is attempted to be created at the target. 
+  */
+  const accounts = await source.methods.getBacklog(batchSize)
+
   const results = await Promise.all(accounts.map(async account => {
-    const migrationStatus = await Okta.user.create(config.oktaInstances.target, account.profile)
+
+    let migrationStatus = { status: "", data: { errors: "" } }
+
+    if (config.source.allowedUserStatusses.indexOf(account.status) > -1) {
+      migrationStatus = await Okta.user.create(config.target, {
+        firstName: account.firstName,
+        lastName: account.lastName,
+        email: account.email,
+        login: account.login
+      })
+    } else {
+      migrationStatus = {
+        status: "NOT_CREATED",
+        data: {
+          errors: `Account status '${account.status}' is not migratable`
+        }
+      }
+    }
+
+    if (migrationStatus.status == "CREATED") {
+      source.methods.removeFromBacklog(account.id)
+    }
 
     return {
-      sourceId: account.id,
-      ...account.profile,
+      ...account,
       status: migrationStatus.status,
       exceptions: migrationStatus.data.errors,
       targetId: migrationStatus.data.id
     }
   }))
-  
-  console.log(results)
-
-  return Buffer.from(stringify(results, csvOptions)).toString("base64")
+  return {
+    processed: results.length,
+    migrated: results.filter(result => result.status === "CREATED").length,
+    file: Buffer.from(stringify(results, csvOptions)).toString("base64")
+  }
 }

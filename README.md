@@ -18,6 +18,140 @@ The below diagram aimes to depict that credentials entered by a newly migrated u
 
 ![alt text](overview.png "Title")
 
+## Implementation
+Accouns are migrated from source to target in two phases. Initially, the accounts are created at the target Okta instance using their profiles from the source IdP. Secondly, when the user attempts to authenticate at the target, they trigger their password migration. These two stages are explained below.
+
+### Profile migration
+Okta Account Migration enables migration operators to migrate batches of account from target to source. By accessing
+and authenticating to the web UI, the migration operator can check the configured target and source, define a size
+of the migration batch and initiate migration.
+
+This will query the source IdP for the contents of the migration backlog. Since implementation of the source IdP is 
+implemented modularly, how the migration backlog is implemented can vary. When using an Okta instance as source IdP, 
+the migration backlog is implemented as a group identified with its id. 
+
+The batch is populated with as many accounts from the migration backlog as possibly, given the batch size entered
+by the migration operator. Every account is attempted to be created at the target. Processing the batch results in
+an excelsheet with details on the batch, the status per account, exceptions and the new user as at the target.
+
+The accounts are created in a way that log-in attempts with the new acount at the target result in the Password Inline Hook to be triggered. Its working is explained in the next paragraph.
+
+
+### Password migration
+
+By creating accounts with their credentials set to the password hook, logging onto the accounts will trigger
+the [Password Import Inline Hook](https://developer.okta.com/docs/reference/password-hook/). This hook needs to be configured at the target Okta instance and point to the url of the Okta Account Migrator deploymnet at the /verify path. The target Okta instance will post the credentials the user just entered to that url. Okta Account Migrator will verify the credentials at the configured source. How this is implemented, depends on the source implementation as this is modular. For the implementation of an Okta instance as source, the API is called.
+
+If verification returns a positive result, this is passed back to the target Okta instance. This is hash and store the entered password to enable the user to log in to Okta using its own verification mechanisms the next time. 
+
+After logging into the target Okta instance, policies may apply causing the user to be required to set up additional authenticators.
+
+## Configuration
+
+### Generic app configuration
+Configration is made available to the app using `config.js`. However, as the app is expected to run in a container, actual configuration is set using environment variables in the container. The configuration options are described based on `config.js`.
+
+```
+const config = {
+    timezone: "Europe/Amsterdam",                   // The timezone is used to have correct 
+                                                    // timestamps in logging
+    server: {
+        username: process.env.SERVER_USERNAME,      // The username of the migration operator to log
+                                                    // onto the web UI 
+        password: process.env.SERVER_PASSWORD,      // The password of the migration operator to log
+                                                    // onto the web UI 
+                                                    // TODO: Compare hashes!
+        port: process.env.SERVER_PORT,              // The port on which the express webserver will listen
+        cert: process.env.SERVER_CERT,              // The server certificate of the express webserver
+        key: process.env.SERVER_KEY                 // The private key with the server certificate
+                                                    // TODO: Make HTTPS optional
+    },
+    source: {
+        plugin: "okta",                             // The base name of the plugin implmenting 
+                                                    //configuration and methods for the source IdP. 
+                                                    //A file name with this base name and the 'js' 
+                                                    // extension is expected to exist in the sources 
+                                                    // directory of the app.
+    },
+    target: {
+        baseUrl: process.env.OKTA_TARGET_BASEURL,   // The base url, including api/v1 of the Okta target 
+                                                    // instance
+        token: process.env.OKTA_TARGET_TOKEN,       // The authentication token for the Okta target 
+                                                    // instance
+                                                    // TODO: Implement scoped app authorization
+        hookAuthentication: {
+            header: "authorization",                // The target Okta instance sending the hook will 
+                                                    // authenticate itself with a secret in this header
+            secret: process.env.OKTA_TARGET_SECRET  // The secret with which the Okta target instance will
+                                                    // authenticate itself.
+        }
+    }
+
+}
+```
+
+The texts after "process.env" are expected to be set as environment variables on the container.
+
+### Source IdP Configuration
+
+Interaction with the source identity provider is expected to be implemented as a plugin. It is referenced using the
+`source.plugin` configuration option. The string configured is expected as the filename `[string].js` in the `sources` directory. A plugin for using an Okta instance as source is delivered with this project and can serve
+as a reference implementation.
+
+Source plugins also have configuration. What is configured depends on the implementation, but at least a string for
+`baseUrl` is expected to be set.
+
+The Okta source plugin is configured using the following properties:
+
+```
+export const config = {
+    baseUrl: process.env.OKTA_SOURCE_BASEURL,               // The base url, including api/v1 of the 
+                                                            // Okta target instance
+    token: process.env.OKTA_SOURCE_TOKEN,                   // The authentication token for the Okta 
+                                                            // source  instance
+                                                            // TODO: Implement scoped app authorization
+    backlogGroupId: process.env.OKTA_SOURCE_BACKLOG_GROUP,  // The Okta group ID that contains the
+                                                            // migration backlog
+    allowedUserStatusses: ["ACTIVE"],                       // The account statusses that apply for 
+                                                            // migration to the target Okta instance.
+    allowedAuthStatusses: ["SUCCESS", "MFA_ENROLL"],        // The account statusses returned by Okta
+                                                            // after authenticating the user that
+                                                            // result in a positive verification result.
+}
+
+```
+
+More information on the implementation of source IdP plugins is contained in the next chapter.
+
+
+## Source IdP Modules
+
+An implementation of a source IdP plugin in javascript is expected to carry a unique name and be available in the `sources` directory. The module should export two objects; `config` and `methods`. 
+
+### `config`
+The `config` object is exported since it is included in the generic config object of the app. At least `baseUrl` is currently used by other parts of the app. The `config` object is described in the previous paragraph.
+
+The `methods` object should contain three functions
+
+### `methods.getBacklog(batchSize)`
+This function is expectected to return the complete list of users, every one described with the following 
+properties:
+- `id`; the id of the account in the source
+- `status`; the account status
+- `firstName`; the first name of the user
+- `lastName`; the last name of the user
+- `email`; the email address of the user
+- `login`; the user name of the user
+
+The size of the returned array should only be limited by the `batchSize` parameter, so pagination may be required.
+
+### `methods.removeFromBacklog(id)`
+
+This function removes a succesfully migrated account from the backlog. It does not return a value.
+
+### `methods.authenticateUser(username, password)`
+
+This functies verifies the provided credentials at the source and returns true for succesful verification or false for failed verification
 
 ## Security
 
@@ -31,19 +165,12 @@ This project is designed with security as primary focus. There is as little TLS 
 
 ## Open issues
 
-_Issues_
-
-- What about second factors?
-
 _To Do_
-
+- Implement Okta API pagination
 - Implement code verification using Node.js SEA or code signing
-- Implement actual moving of accounts via batches and creation of CSV
 - Implement Helmet for web server hardening 
 - Decommission accounts at the source Okta instance after succesful verification
 
-(done)
-- ✅ Implement HTTPS/TLS in Express
 
 ## References
 

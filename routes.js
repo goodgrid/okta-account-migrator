@@ -1,6 +1,6 @@
 import fs from 'fs'
 import express from "express";
-import Okta from "./okta.js";
+import Okta from "./target.js";
 import { isValidRequest, authenticateRequest, migrateUsers, logger } from "./utils.js";
 import config from "./config.js";
 
@@ -14,7 +14,9 @@ export const userRoutes = express.Router();
 apiRoutes.post("/verify", express.json(), async (req, res) => {
     if (isValidRequest(req)) {
 
-      const isUserVerified = await Okta.user.authenticate(config.oktaInstances.source, req.body.data.context.credential)
+      const credential = req.body.data.context.credential
+
+      const isUserVerified = await Okta.user.authenticate(config.source, credential.username, credential.password)
 
       logger(`User ${isUserVerified ? "IS" : "IS NOT"} succesfully verified at source`)
 
@@ -47,20 +49,22 @@ userRoutes.get("/", authenticateRequest, (req, res) => {
 userRoutes.get("/migrate", authenticateRequest, (req, res) => {
    const re = /https:\/\/(.*?)\//
    const servers = {
-      source: (config.oktaInstances.source.baseUrl.match(re) || [])[1],
-      target: (config.oktaInstances.target.baseUrl.match(re) || [])[1]
+      source: (config.source.baseUrl.match(re) || [])[1],
+      target: (config.target.baseUrl.match(re) || [])[1]
    }
 
-   res.render('migrate', { servers });
+   res.render('migrate', { source: config.source, target: config.target });
 })
 
 
 userRoutes.post("/migrate", authenticateRequest, express.urlencoded({ extended: true }), async (req, res) => {
    const batchSize = req.body.batchSize
 
+   const migrationResults = await migrateUsers(batchSize)
+
    const download = {
       timestamp: (new Date()).toISOString(),
-      file: await migrateUsers(batchSize)
+      file: migrationResults.file
 
    }
 
@@ -68,7 +72,7 @@ userRoutes.post("/migrate", authenticateRequest, express.urlencoded({ extended: 
       const html = `
          <main id="content" hx-swap-oob="afterbegin">
             <p class="flash">
-               Batch of ${batchSize} accounts is migrated. Click 'Download' to download batch details.
+               Batch of ${batchSize} accounts resulted in ${migrationResults.processed} users processed and ${migrationResults.migrated} users succesfully migrated. Click 'Download' to download batch details.
             </p>            
          </main>
 

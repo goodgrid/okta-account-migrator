@@ -25,9 +25,17 @@ html
     main#content
         h2 Migrate batch
 
-        p Migrate a batch of accounts from the Okta source instance to the Okta target instance by entering the batch size (default is 100) and clicking "Start".
+        p 
+          Migrate a batch of accounts from the Okta source instance to the Okta target instance by entering the 
+          | batch size (default is 100) and clicking "Start".
 
-        p Congfiguration defines that accounts are migrated from !{servers.source} to !{servers.target}.
+        p Okta Account Migration is currently configured to move accounts to the Okta instance at 
+          i !{target.baseUrl}
+          | . The source identity provider is configured as type 
+          i !{source.plugin} 
+          | and located at 
+          i !{source.baseUrl}.
+        
 
         form(
           action='/migrate',
@@ -35,9 +43,11 @@ html
           hx-post='/migrate',
         )
           label(for='batchSize') Batch size:
-          input#name(type='text', name='batchSize', value='100', required)
+          input#batchSize(type='text', name='batchSize', value='100', required)
 
           div.actions
-            button(type='submit') Start
+            button(type='submit' hx-indicator="#spinner") Start
+          
+            img#spinner(height='24px', class='htmx-indicator', src='/spinner.gif')
 
     script(src='https://unpkg.com/htmx.org@1.9.10')

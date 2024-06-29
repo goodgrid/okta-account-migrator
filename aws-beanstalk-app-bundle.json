@@ -1,7 +1,7 @@
 {
 	"AWSEBDockerrunVersion": "1",
 	"Image": {
-		"Name": "goodgrid/okta-account-migrator:0.2.0",
+		"Name": "goodgrid/okta-account-migrator:0.3.0",
 		"Update": "true"
 	},
 	"Ports": [

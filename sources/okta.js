@@ -8,7 +8,7 @@ import Bottleneck from "bottleneck"
     The baseUrl property is required.
 */
 
-export const config = {
+export const Config = {
     baseUrl: process.env.OKTA_SOURCE_BASEURL,               // The base url, including api/v1 of the 
                                                             // Okta target instance
     token: process.env.OKTA_SOURCE_TOKEN,                   // The authentication token for the Okta 
@@ -24,9 +24,9 @@ export const config = {
 }
 
 const client = axios.create({
-    baseURL: config.baseUrl,
+    baseURL: Config.baseUrl,
     headers: {
-        Authorization: `SSWS ${config.token}`
+        Authorization: `SSWS ${Config.token}`
     }
 })
 
@@ -51,7 +51,7 @@ export const methods = {
         TODO: Implement paging
     */
     getBacklog: async (batchSize) => {
-        const response = await client.get(`groups/${config.backlogGroupId}/users?limit=${batchSize}`,{
+        const response = await client.get(`groups/${Config.backlogGroupId}/users?limit=${batchSize}`,{
             headers: {
                 "okta-response": "omitCredentials,omitCredentialsLinks, omitTransitioningToStatus"
             }
@@ -75,7 +75,7 @@ export const methods = {
     removeFromBacklog: async (id) => {
         console.log("Removing item from backlog")
 
-        const response = client.delete(`groups/${config.backlogGroupId}/users/${id}`)
+        const response = client.delete(`groups/${Config.backlogGroupId}/users/${id}`)
 
         console.log(response.data)
 
@@ -99,7 +99,7 @@ export const methods = {
                 password: password
             })
 
-            if (config.allowedAuthStatusses.indexOf(response.data.status) > -1) {
+            if (Config.allowedAuthStatusses.indexOf(response.data.status) > -1) {
                 return true
             }
             logger(`Verification failed due to account status ${response.data.status}`)

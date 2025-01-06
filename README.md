@@ -48,42 +48,59 @@ After logging into the target Okta instance, policies may apply causing the user
 
 ## Configuration
 
+### Target IdP configuration
+
+Okta Account Migrators purpose is to migrate accounts from source IdP (including application with built-in authentication to Okta). Therefor, the target IdP is always Okta. To authenticate to Okta Account Migrator, 
+the Okta Sign-In Widget is used which integrated to Okta (Classic Engine) using the Authorization Code flow 
+with client credentials. This parapgraph documents the configuration of the integration in the Okta target
+instance.
+
+- Add an OIDC application using method "OIDC - OpenID Connect" of Application Type "Web Application"
+- Give the application a name ("Okta Account Migrator [env]") and select "Authorization Code" for Grant Type
+- Set the redirect uri on https://[host]]/login/callback
+- Assign the application to the proper group
+- Save the app definition
+
+- Open the app's details and take the client id and client secret for configuration on the client side
+
+- Add the deployment url (https://[host]]/) to Trusted Origins for type=CORS at Security => API => Trusted Origins
+
+- Add an Access Policy for the default authorization server (if that's the one used) for the client (app) and with appropiate token life times.
+
 ### Generic app configuration
 Configration is made available to the app using `config.js`. However, as the app is expected to run in a container, actual configuration is set using environment variables in the container. The configuration options are described based on `config.js`.
 
 ```
 const config = {
-    timezone: "Europe/Amsterdam",                   // The timezone is used to have correct 
-                                                    // timestamps in logging
+    timezone: "Europe/Amsterdam",                               // The timezone is used to have correct 
+                                                                // timestamps in logging
     server: {
-        username: process.env.SERVER_USERNAME,      // The username of the migration operator to log
-                                                    // onto the web UI 
-        password: process.env.SERVER_PASSWORD,      // The password of the migration operator to log
-                                                    // onto the web UI 
-                                                    // TODO: Compare hashes!
-        port: process.env.SERVER_PORT,              // The port on which the express webserver will listen
-        cert: process.env.SERVER_CERT,              // The server certificate of the express webserver
-        key: process.env.SERVER_KEY                 // The private key with the server certificate
-                                                    // TODO: Make HTTPS optional
+        port: process.env.SERVER_PORT,                          // The port on which the express webserver will listen
+        cert: process.env.SERVER_CERT,                          // The server certificate of the express webserver
+        key: process.env.SERVER_KEY                             // The private key with the server certificate
+                                                                // TODO: Make HTTPS optional
     },
     source: {
-        plugin: "okta",                             // The base name of the plugin implmenting 
-                                                    //configuration and methods for the source IdP. 
-                                                    //A file name with this base name and the 'js' 
-                                                    // extension is expected to exist in the sources 
-                                                    // directory of the app.
+        plugin: "okta",                                         // The base name of the plugin implmenting 
+                                                                //configuration and methods for the source IdP. 
+                                                                //A file name with this base name and the 'js' 
+                                                                // extension is expected to exist in the sources 
+                                                                // directory of the app.
     },
     target: {
-        baseUrl: process.env.OKTA_TARGET_BASEURL,   // The base url, including api/v1 of the Okta target 
-                                                    // instance
-        token: process.env.OKTA_TARGET_TOKEN,       // The authentication token for the Okta target 
-                                                    // instance
-                                                    // TODO: Implement scoped app authorization
+        baseUrl: process.env.OKTA_TARGET_BASEURL,               // The base url of the Okta target instance
+        oidcRedirectUri: process.env.OKTA_OIDC_REDIRECT_URI,    // The redirect URI ending on /login/callback as 
+                                                                // configured in the target Okta instance.
+        oidcClientId: process.env.OKTA_OIDC_CLIENT_ID,          // The OIDC client ID as provided when configuring
+                                                                // the app definition in the target Okta instance.
+        oidcClientSecret: process.env.OKTA_OIDC_CLIENT_SECRET,  // The OIDC client secret as provided after 
+                                                                // configuring the app definition in the target Okta 
+                                                                // instance.
         hookAuthentication: {
-            header: "authorization",                // The target Okta instance sending the hook will 
-                                                    // authenticate itself with a secret in this header
-            secret: process.env.OKTA_TARGET_SECRET  // The secret with which the Okta target instance will
-                                                    // authenticate itself.
+            header: "authorization",                            // The target Okta instance sending the hook will 
+                                                                // authenticate itself with a secret in this header
+            secret: process.env.OKTA_TARGET_SECRET              // The secret with which the Okta target instance will
+                                                                // authenticate itself.
         }
     }
 
@@ -170,6 +187,7 @@ _To Do_
 - Implement code verification using Node.js SEA or code signing
 - Implement Helmet for web server hardening 
 - Decommission accounts at the source Okta instance after succesful verification
+- Prepare OIDC authentication for Identity Engine with optionally Interaction code flow
 
 
 ## References

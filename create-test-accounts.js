@@ -1,5 +1,5 @@
 import Okta from "./okta.js";
-import config from "./config.js";
+import Config from "./config.js";
 
 
 if (process.argv.length < 4) {
@@ -20,6 +20,6 @@ if (process.argv.length < 4) {
     }
 
     
-    const result2 = await Okta.testdata.createTestUser(config.source, user, password)
+    const result2 = await Okta.testdata.createTestUser(Config.source, user, password)
     console.log(result2.data)
 }

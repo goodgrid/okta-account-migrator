@@ -1,11 +1,13 @@
+import jwt from 'jsonwebtoken';
+import jwksClient from 'jwks-rsa';
 import { stringify } from "csv-stringify/sync"
 import Okta from "./target.js"
 import source from "./sources/sources.js"
-import config from "./config.js"
+import Config from "./config.js"
 
 export const logger = (message) => {
   console.log(`${new Date().toLocaleString("nl-NL", {
-    timeZone: config.timeZone
+    timeZone: Config.timeZone
   })} - ${message}`)
 }
 
@@ -21,8 +23,8 @@ export const logger = (message) => {
 */
 export const isValidRequest = (req) => {
 
-  if (req.headers[config.target.hookAuthentication.header] !== config.target.hookAuthentication.secret) {
-    logger("Hook received with unagreed shared secret or missing header", config.target.hookAuthentication.header)
+  if (req.headers[Config.target.hookAuthentication.header] !== Config.target.hookAuthentication.secret) {
+    logger("Hook received with unagreed shared secret or missing header", Config.target.hookAuthentication.header)
     return false
   }
 
@@ -31,33 +33,50 @@ export const isValidRequest = (req) => {
     return false
   }
 
-  if (req.body.source.match(`^${config.target.baseUrl}`) === null) {
+  if (req.body.source.match(`^${Config.target.baseUrl}`) === null) {
     logger("Hook from unknown source received", req.body.source)
     return false
   }
   return true
 }
 
-/*
-    If no basic authentication headers are present, return a the headers indicating that authentication
-    is required. If headers are present, parse them and verify the credentials against the configured
-    credentials.
-
-    This is Express middleware called in every route requiring authentication.
-*/
 export const authenticateRequest = (req, res, next) => {
-  const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
-  const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':')
 
-  if (login && password && login === config.server.username && password === config.server.password) {
-    return next()
-  }
-
-  res.set('WWW-Authenticate', 'Basic realm="Okta Account Migrator"')
-  res.status(401).send('Authentication required.')
+  if (!req.session.accessToken) {
+      res.redirect(`/login?origin=${req.url}`)
+    }
+    next()
 }
 
-export const migrateUsers = async (batchSize) => {
+
+export const isValidWebToken = async (jwksUri, token) => {
+  const decodedHeader = jwt.decode(token, { complete: true });
+
+  if (!decodedHeader || !decodedHeader.header || !decodedHeader.header.kid) {
+      throw new Error('Invalid token: Missing KID in header.');
+  }
+
+  const client = jwksClient({
+    jwksUri: jwksUri
+  })
+
+  const publicKey = (await client.getSigningKey(decodedHeader.header.kid)).publicKey
+
+  try {
+    const result = jwt.verify(token, publicKey, { algorithms: ['RS256'] })
+
+    //if (Config.debug) 
+      console.log(`Token for ${result.email} is valid until ${new Date(result.exp * 1000)}`)
+    
+    return result
+  } catch (error) {
+    console.error(error.message)
+    return null
+  }
+  
+}
+
+export const migrateUsers = async (batchSize, accessToken) => {
 
   const csvOptions = {
     header: true,
@@ -71,12 +90,17 @@ export const migrateUsers = async (batchSize) => {
   */
   const accounts = await source.methods.getBacklog(batchSize)
 
+  console.log(accounts)
+
   const results = await Promise.all(accounts.map(async account => {
 
     let migrationStatus = { status: "", data: { errors: "" } }
 
-    if (config.source.allowedUserStatusses.indexOf(account.status) > -1) {
-      migrationStatus = await Okta.user.create(config.target, {
+    if (Config.source.allowedUserStatusses.indexOf(account.status) > -1) {
+
+      console.log(`Migrating user ${account.email} `)
+
+      migrationStatus = await Okta.user.create(Config.target, accessToken, {
         firstName: account.firstName,
         lastName: account.lastName,
         email: account.email,

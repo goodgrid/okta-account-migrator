@@ -1,16 +1,17 @@
-import jwt from 'jsonwebtoken';
-import jwksClient from 'jwks-rsa';
 import { stringify } from "csv-stringify/sync"
 import Okta from "./target.js"
 import source from "./sources/sources.js"
 import Config from "./config.js"
 
+/*
+  This function logs to the console. Potential improvement is to make logging 
+  modular using - for example - Winston
+*/
 export const logger = (message) => {
   console.log(`${new Date().toLocaleString("nl-NL", {
     timeZone: Config.timeZone
   })} - ${message}`)
 }
-
 
 /*
    This function determines whether to process the request or ignore it and send an error status. These
@@ -40,65 +41,45 @@ export const isValidRequest = (req) => {
   return true
 }
 
-export const authenticateRequest = (req, res, next) => {
+/*
+  If there is no access token for the session, the user has not authenticated yet. The user is redirected
+  to the logon page without special message. If there is a access token it is inspected at the IdP. If the 
+  token is not active, the user is redirected to the login page with the message that the session expired.
+*/
+export const authenticateRequest = async (req, res, next) => {
+  const accessToken = req.session.accessToken
 
-  if (!req.session.accessToken) {
-      res.redirect(`/login?origin=${req.url}`)
-    }
+  if (!accessToken) {
+    res.redirect(`/login?origin=${req.url}`)
+  } else if (!(await Okta.auth.validateAccessToken(req.session.accessToken)).isValid) {
+    res.redirect(`/login?origin=${req.url}&message=Your session is no longer valid`)
+  } else {
     next()
+  }
 }
 
+/*
+  This function migrated the account from source to target using the methods
+  implemented in the source plugin and the Okta API for the source.
 
-export const isValidWebToken = async (jwksUri, token) => {
-  const decodedHeader = jwt.decode(token, { complete: true });
-
-  if (!decodedHeader || !decodedHeader.header || !decodedHeader.header.kid) {
-      throw new Error('Invalid token: Missing KID in header.');
-  }
-
-  const client = jwksClient({
-    jwksUri: jwksUri
-  })
-
-  const publicKey = (await client.getSigningKey(decodedHeader.header.kid)).publicKey
-
-  try {
-    const result = jwt.verify(token, publicKey, { algorithms: ['RS256'] })
-
-    //if (Config.debug) 
-      console.log(`Token for ${result.email} is valid until ${new Date(result.exp * 1000)}`)
-    
-    return result
-  } catch (error) {
-    console.error(error.message)
-    return null
-  }
-  
-}
-
-export const migrateUsers = async (batchSize, accessToken) => {
+  All accounts are retrieved from the backlog. This is a method exposed by the 
+  source plugin implementation. The backlog is looped over and for every account
+  the account is attempted to be created at the target. 
+*/
+export const migrateAccounts = async (batchSize, accessToken) => {
 
   const csvOptions = {
     header: true,
     delimiter: ";"
   }
 
-  /*
-    All accounts are retrieved from the backlog. This is a method exposed by the 
-    source plugin implementation. The backlog is looped over and for every account
-    the account is attempted to be created at the target. 
-  */
   const accounts = await source.methods.getBacklog(batchSize)
-
-  console.log(accounts)
 
   const results = await Promise.all(accounts.map(async account => {
 
     let migrationStatus = { status: "", data: { errors: "" } }
 
     if (Config.source.allowedUserStatusses.indexOf(account.status) > -1) {
-
-      console.log(`Migrating user ${account.email} `)
 
       migrationStatus = await Okta.user.create(Config.target, accessToken, {
         firstName: account.firstName,

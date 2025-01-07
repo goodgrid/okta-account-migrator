@@ -1,6 +1,6 @@
 import express from "express";
 import Okta from "./target.js";
-import { isValidRequest, authenticateRequest, migrateUsers, logger } from "./utils.js";
+import { isValidRequest, authenticateRequest, migrateAccounts, logger } from "./utils.js";
 import Config from "./config.js";
 
 export const apiRoutes = express.Router();
@@ -39,8 +39,6 @@ apiRoutes.post("/verify", express.json(), async (req, res) => {
 })
 
 
-const contacts = []
-
 userRoutes.get("/", authenticateRequest, (req, res) => {
    res.render('index');
 })
@@ -49,20 +47,18 @@ userRoutes.get("/login", (req, res) => {
    res.render('login', { 
       oktaBaseUrl: Config.target.baseUrl, 
       oidcRedirectUri: Config.target.oidcRedirectUri,
-      oidcClientId: Config.target.oidcClientId
+      oidcClientId: Config.target.oidcClientId,
+      message: req.query.message
    })
 })
 
 userRoutes.get("/login/callback", async (req, res) => {
-
    const authorizationCode = req.query.code
-
-   const accessToken = await Okta.admin.getAccessToken(authorizationCode)
+   const accessToken = await Okta.auth.getAccessToken(authorizationCode)
    
    req.session.accessToken = accessToken
 
    res.redirect("/")
-   
 })
 
 userRoutes.get("/migrate", authenticateRequest, (req, res) => {
@@ -77,38 +73,31 @@ userRoutes.post("/migrate", authenticateRequest, express.urlencoded({ extended: 
    const batchSize = req.body.batchSize
    const accessToken = req.session.accessToken
 
-   const migrationResults = await migrateUsers(batchSize, accessToken)
+   const migrationResults = await migrateAccounts(batchSize, accessToken)
 
    const download = {
       timestamp: (new Date()).toISOString(),
       file: migrationResults.file
-
    }
 
-   res.render('content', (err) => {
-      const html = `
-         <main id="content" hx-swap-oob="afterbegin">
-            <p class="flash">
-               Batch of ${batchSize} accounts resulted in ${migrationResults.processed} users processed and ${migrationResults.migrated} users succesfully migrated. Click 'Download' to download batch details.
-            </p>            
-         </main>
-
-         <form action="/download" method="post">
-            <input name="download" type="hidden" value='${JSON.stringify(download)}'/>
-            <button type="submit">Download</button>
-         </form>
-         `
-         
-      res.send(html);
-   });
+   res.render("confirm", { 
+      batchTimestamp: download.timestamp,
+      batchSize: batchSize,
+      processed: migrationResults.processed, 
+      migrated: migrationResults.migrated,
+      download: JSON.stringify(download), 
+   })
 })
 
 userRoutes.post("/download", authenticateRequest, express.urlencoded({ extended: true }), (req, res) => {
 
-   const file = Buffer.from(JSON.parse(req.body.download).file,"base64").toString("utf-8")
+   const downloadObject = JSON.parse(req.body.download)
+
+   const file = Buffer.from(downloadObject.file,"base64").toString("utf-8")
 
    res.setHeader('Content-Length', file.length);
    res.setHeader('Content-Type', 'text/csv');
+   res.setHeader('Content-Disposition', `attachment; filename="OAM Results ${downloadObject.timestamp}.csv"`)
    res.write(file, 'binary');
 
 })

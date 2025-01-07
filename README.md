@@ -58,7 +58,7 @@ instance.
 - Add an OIDC application using method "OIDC - OpenID Connect" of Application Type "Web Application"
 - Give the application a name ("Okta Account Migrator [env]") and select "Authorization Code" for Grant Type
 - Set the redirect uri on https://[host]]/login/callback
-- Assign the application to the proper group
+- Assign the application to the proper group. Note that users Okta Account Migrator need to be able to create users and as a result require an administrator role.
 - Save the app definition
 
 - Open the app's details and take the client id and client secret for configuration on the client side
@@ -185,8 +185,6 @@ This project is designed with security as primary focus. There is as little TLS 
 _To Do_
 - Implement Okta API pagination
 - Implement code verification using Node.js SEA or code signing
-- Implement Helmet for web server hardening 
-- Decommission accounts at the source Okta instance after succesful verification
 - Prepare OIDC authentication for Identity Engine with optionally Interaction code flow
 
 

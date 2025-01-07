@@ -7,8 +7,8 @@ html
     link(rel='preconnect', href='https://fonts.googleapis.com')
     link(rel='preconnect', href='https://fonts.gstatic.com', crossorigin)
     link(href='https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&display=swap', rel='stylesheet')
-
     link(rel='stylesheet', href='/styles.css')
+    
   body
     header
       a(href='/')
@@ -26,7 +26,7 @@ html
         h2 Migrate batch
 
         p 
-          Migrate a batch of accounts from the Okta source instance to the Okta target instance by entering the 
+          | Migrate a batch of accounts from the Okta source instance to the Okta target instance by entering the 
           | batch size (default is 100) and clicking "Start".
 
         p Okta Account Migration is currently configured to move accounts to the Okta instance at 
@@ -41,6 +41,8 @@ html
           action='/migrate',
           method='POST',
           hx-post='/migrate',
+          hx-target='h2'
+          hx-swap='afterend'
         )
           label(for='batchSize') Batch size:
           input#batchSize(type='text', name='batchSize', value='100', required)
@@ -50,4 +52,4 @@ html
           
             img#spinner(height='24px', class='htmx-indicator', src='/spinner.gif')
 
-    script(src='https://unpkg.com/htmx.org@1.9.10')
+    script(src='https://unpkg.com/htmx.org@2' integrity="sha256-4gndpcgjVHnzFm3vx3UOHbzVpcGAi3eS/C5nM3aPtEc=" crossorigin='anonymous')

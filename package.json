@@ -10,8 +10,7 @@
     "csv-stringify": "^6.5.0",
     "express": "^4.19.2",
     "express-session": "^1.18.1",
-    "jsonwebtoken": "^9.0.2",
-    "jwks-rsa": "^3.1.0",
+    "helmet": "^8.0.0",
     "pug": "^3.0.3"
   }
 }

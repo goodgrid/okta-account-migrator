@@ -7,10 +7,10 @@ html
     link(rel='preconnect', href='https://fonts.googleapis.com')
     link(rel='preconnect', href='https://fonts.gstatic.com', crossorigin)
     link(href='https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&display=swap', rel='stylesheet')
-
-    script(src='https://global.oktacdn.com/okta-signin-widget/7.25.1/js/okta-sign-in.min.js' type='text/javascript')
-    link(href='https://global.oktacdn.com/okta-signin-widget/7.25.1/css/okta-sign-in.min.css' type='text/css' rel='stylesheet')
     link(rel='stylesheet', href='/styles.css')   
+
+    script(src='https://global.oktacdn.com/okta-signin-widget/7.25.1/js/okta-sign-in.min.js' type='text/javascript' integrity="sha256-0tMVjCXtl3efgfTa0jWWIhsVaaZ+J5/u/Ausvjt5JaI=" crossorigin='anonymous')
+    link(href='https://global.oktacdn.com/okta-signin-widget/7.25.1/css/okta-sign-in.min.css' type='text/css' rel='stylesheet') 
 
   body
     header
@@ -20,8 +20,12 @@ html
     section#sidebar
 
     main#content
-        #okta-login-container
+        h2 Sign in 
 
+        if message 
+          p.flash !{message}
+
+        #okta-login-container
 
 script(language='javascript').
   const url = new URL(window.location.href)
@@ -35,6 +39,11 @@ script(language='javascript').
       scopes: ["openid", "profile", "okta.users.manage"],
       useInteractionCodeFlow: false,
       useClassicEngine: true,
+      logoText: "Okta Account Migrator",
+      language: "en",
+      colors: {
+          brand: '#3273dc'
+      },
       authParams: {
           responseType: 'code',
           pkce: false,

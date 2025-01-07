@@ -1,6 +1,6 @@
 import axios from "axios";
 import Bottleneck from "bottleneck";
-import { logger, isValidWebToken } from './utils.js'
+import { logger } from './utils.js'
 import Config from "./config.js";
 
 const limiter = new Bottleneck({
@@ -10,14 +10,12 @@ const limiter = new Bottleneck({
 const okta = axios.create()
 
 okta.interceptors.request.use(async config => {
-    await limiter.schedule(() => {
-        if (Config.debug) console.log("Thottling...")
-    })
+    await limiter.schedule(() => {})
     return config
 })
 
 const Okta = {
-    admin: {
+    auth: {
         getAccessToken: async (authorizationCode) => {
             try {
                 const params = new URLSearchParams({
@@ -39,8 +37,34 @@ const Okta = {
                 return response.data.access_token
     
             } catch(error) {
-                console.log(error.response.data)
+                console.error(error.response.data)
             }
+        },
+
+        validateAccessToken: async (accessToken) => {
+            try {
+                const params = new URLSearchParams({
+                    token: accessToken,
+                    token_type_hint: "access_token",
+                })
+
+                const config = {
+                    headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded',
+                      'Authorization': `Basic ${Buffer.from(`${Config.target.oidcClientId}:${Config.target.oidcClientSecret}`).toString("base64")}`
+                    }
+                }
+
+                const response = await okta.post(`${Config.target.baseUrl}/oauth2/v1/introspect`, params, config)
+
+                return {
+                    isValid: response.data.active
+                }
+    
+            } catch(error) {
+                console.error(error.response.data)
+            }
+
         }
     },
     testdata: {

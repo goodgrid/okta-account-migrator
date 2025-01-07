@@ -73,12 +73,7 @@ export const methods = {
         was succesfully created in the target
     */
     removeFromBacklog: async (id) => {
-        console.log("Removing item from backlog")
-
         const response = client.delete(`groups/${Config.backlogGroupId}/users/${id}`)
-
-        console.log(response.data)
-
     },
 
 

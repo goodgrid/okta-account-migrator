@@ -1,9 +1,10 @@
 import Okta from "./okta.js";
+import { logger } from "./utils.js";
 import Config from "./config.js";
 
 
 if (process.argv.length < 4) {
-    console.log("Provide an email address as firstname.last@domain.com as the first argument and a password as the second argument")
+    logger("Provide an email address as firstname.last@domain.com as the first argument and a password as the second argument")
 } else {
 
     const login = process.argv[2]
@@ -19,7 +20,12 @@ if (process.argv.length < 4) {
         }
     }
 
+    try {
+        await Okta.testdata.createTestUser(Config.source, user, password)
+
+        logger(`Account ${user.login} created.`)
     
-    const result2 = await Okta.testdata.createTestUser(Config.source, user, password)
-    console.log(result2.data)
+    } catch(error)  {
+        console.error(error)
+    }
 }

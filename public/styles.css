@@ -179,14 +179,21 @@
   }
   
   .flash {
-    width: 400px;
+    width: 100%;
     margin-bottom: 2rem;
     padding: 0.8rem;
   
-    font-size: 1.1rem;
+    font-size: 1.0rem;
     color: var(--color-flash-text);
   
     background-color: var(--color-flash);
     border-radius: 3px;
     box-shadow: 0 2px 4px var(--color-shadow);
+  }
+
+  #okta-sign-in {
+    width: 100% !important;
+    margin: 0px !important;
+    border: none !important;
+    font-family: Roboto, sans-serif !important;
   }

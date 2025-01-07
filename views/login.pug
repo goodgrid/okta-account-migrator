@@ -9,7 +9,7 @@ html
     link(href='https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&display=swap', rel='stylesheet')
     link(rel='stylesheet', href='/styles.css')   
 
-    script(src='https://global.oktacdn.com/okta-signin-widget/7.25.1/js/okta-sign-in.min.js' type='text/javascript' integrity="sha256-0tMVjCXtl3efgfTa0jWWIhsVaaZ+J5/u/Ausvjt5JaI=" crossorigin='anonymous')
+    script(src='https://global.oktacdn.com/okta-signin-widget/7.25.1/js/okta-sign-in.min.js' type='text/javascript' nonce=`${cspNonce}` crossorigin='anonymous')
     link(href='https://global.oktacdn.com/okta-signin-widget/7.25.1/css/okta-sign-in.min.css' type='text/css' rel='stylesheet') 
 
   body
@@ -27,7 +27,7 @@ html
 
         #okta-login-container
 
-script(language='javascript').
+script(language='javascript' nonce=`${cspNonce}`).
   const url = new URL(window.location.href)
 
   const oktaSignIn = new OktaSignIn({

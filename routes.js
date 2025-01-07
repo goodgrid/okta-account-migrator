@@ -40,7 +40,9 @@ apiRoutes.post("/verify", express.json(), async (req, res) => {
 
 
 userRoutes.get("/", authenticateRequest, (req, res) => {
-   res.render('index');
+   res.render('index', {
+      cspNonce: req.cspNonce
+   });
 })
 
 userRoutes.get("/login", (req, res) => {
@@ -48,7 +50,8 @@ userRoutes.get("/login", (req, res) => {
       oktaBaseUrl: Config.target.baseUrl, 
       oidcRedirectUri: Config.target.oidcRedirectUri,
       oidcClientId: Config.target.oidcClientId,
-      message: req.query.message
+      message: req.query.message,
+      cspNonce: req.cspNonce
    })
 })
 
@@ -64,7 +67,8 @@ userRoutes.get("/login/callback", async (req, res) => {
 userRoutes.get("/migrate", authenticateRequest, (req, res) => {
    res.render('migrate', { 
       source: Config.source, 
-      target: Config.target 
+      target: Config.target,
+      cspNonce: req.cspNonce
    });
 })
 
@@ -86,6 +90,7 @@ userRoutes.post("/migrate", authenticateRequest, express.urlencoded({ extended: 
       processed: migrationResults.processed, 
       migrated: migrationResults.migrated,
       download: JSON.stringify(download), 
+      cspNonce: req.cspNonce
    })
 })
 

@@ -2,3 +2,4 @@ node_modules
 *.http
 package-lock.json
 dev-variables.txt
+azure.yml

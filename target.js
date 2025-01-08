@@ -118,7 +118,7 @@ const Okta = {
                 return {
                     status: "NOT_CREATED",
                     data: {
-                        errors: error.response.data.errorCauses.map(cause => cause.errorSummary).join(", ")
+                        errors: error.response.data.errorCauses ? error.response.data.errorCauses.map(cause => cause.errorSummary).join(", ") : `Unspecified error (HTTP${response.statusCode})`
                     }
                 }
             }

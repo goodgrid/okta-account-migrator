@@ -12,46 +12,18 @@ html
   body
     header
       a(href='/')
-        h1 Okta Account Migrator
+        span#title Okta Account Migrator
 
     section#sidebar
       div.actions
         p
-            a(href='/') Introduction
+            a(href='/') Documentation
 
         p
             a(href='/migrate') Migrate batch
 
 
     main#content
-        h2 Introduction
-        p 
-          | Okta Account Migrator allows you to transfer accounts from one identity provider to an Okta instance. 
-          | The design allows for a modular setup where source identity providers or authenticating applications 
-          | can be added with little effort. Currently, the plugin for an Okta identity provider is provided and 
-          | tested. 
-        
-        p 
-          | Account profiles are taken from the source and created at the target instance. Their status is set to 
-          | trigger an inline hook upon their first log-in attempt at the target Okta instance. The inline hook 
-          | verifies their credentials at the source Okta instance before storing the succesfully verified password 
-          | at the target instance.
-
-        p 
-          | Accounts are migrated in batches of a defined size. The account in a batch are read from a backlog at the 
-          | source instance. For every batch, the accounts from the source Okta instance are created at the target 
-          | Okta instance and removed from the backlog. Additionally, a CSV file is provided listing the migrated 
-          | accounts. This data is intended to be used control other parts of the migration, such as preparation of 
-          | the resource providers connected to the target instance. Also, the CSV file is to be used to inform 
-          users about their ability to log into the target Okta instance.
-
-        p 
-          | Optionally, accounts can be deactivated automatically after succesfully moving the password from source 
-          | to target.
-
-        p Further technical documentation is available at 
-            a(href="https://github.com/goodgrid/okta-account-migrator/blob/main/README.md") Github
-                
-        div#osw-container
+        include:markdown-it ../README.md
 
     script(src='https://unpkg.com/htmx.org@2' nonce=`${cspNonce}` crossorigin='anonymous')

@@ -34,6 +34,9 @@ app.use(rateLimit({
   message: 'Requests from your IP address exceed our limits. Set back, chill, and try again in a while.',
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  validate: {
+    xForwardedForHeader: false,
+  },
 }))
 
 const cspNonce = `nonce-${crypto.randomBytes(16).toString('base64')}`
@@ -48,7 +51,7 @@ app.use(helmet({
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", `'nonce-${cspNonce}'`],
-        imgSrc: ["'self'", "https://global.oktacdn.com/"],
+        imgSrc: ["'self'", "https://global.oktacdn.com/", "https://raw.githubusercontent.com/goodgrid/okta-account-migrator/"],
         connectSrc: ["'self'", Config.target.baseUrl],
       },
     },

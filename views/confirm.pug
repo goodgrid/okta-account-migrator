@@ -1,7 +1,7 @@
 div.flash
-    | Batch of !{batchTimestamp} contained !{batchSize} source accounts and resulted in !{processed} users 
-    | evaluated, and !{migrated} users succesfully migrated to target. Click &apos;Download&apos; to 
-    | download batch details.
+    | Batch of !{batchTimestamp} was capped at maximum !{batchSize} source accounts and resulted 
+    | in !{processed} users evaluated, and !{migrated} users succesfully migrated to target. 
+    | Click &apos;Download&apos; to download batch details.
     div(style="display:flex; justify-content: flex-end;")
         form(action='/download' method='post')
             input(name='download' type='hidden' value=`${download}`)

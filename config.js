@@ -26,8 +26,8 @@ const config = {
         hookAuthentication: {
             header: "authorization",                            // The target Okta instance sending the hook will 
                                                                 // authenticate itself with a secret in this header
-            secret: process.env.OKTA_TARGET_SECRET              // The secret with which the Okta target instance will
-                                                                // authenticate itself.
+            secret: process.env.OKTA_TARGET_HOOK_SECRET         // The secret with which the Okta target instance 
+                                                                // will authenticate itself.
         }
     }
 

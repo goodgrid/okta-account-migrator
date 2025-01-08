@@ -58,6 +58,7 @@
   
   #content {
     grid-area: content;
+    width: 80%;
     padding: 25px;
   }
   
@@ -70,33 +71,52 @@
     color: var(--color-white);
     text-decoration: none;
   }
-  
-  h1 {
+
+  span#title {
     font-size: 3rem;
     font-weight: 300;
   }
-  
-  h2 {
-    margin-bottom: 1rem;
-    font-size: 2.3rem;
-    line-height: 1;
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 300;
     color: var(--color-primary);
   }
   
+  h2 {
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 300;
+    line-height: 1;
+    color: var(--color-primary);
+  }
+
+  h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    line-height: 2;
+    color: var(--color-primary);
+  }
+
+  h4 {
+    font-size: 1rem;
+    color: var(--color-text);
+    font-weight: 900;
+  }
+  
   ul {
-    font-size: 1.2rem;
+    font-size: 1rem;
     list-style: none;
+    margin-bottom: 1rem;
+    list-style-position: outside;
+    padding-left: 1.5em; 
   }
   
   ul li::before {
-    content: '•';
-  
-    display: inline-block;
-  
-    width: 1rem;
-  
-    font-weight: bold;
-    color: var(--color-secondary);
+    content: '👉';
+    margin-right: 10px;
   }
   
   ul a {
@@ -104,6 +124,11 @@
     text-decoration: none;
   }
   
+  li {
+    text-indent: -1.5em; /* Bullet optisch compenseren */
+    padding-left: 1.5em; /* Begin tekst inspringen vanaf bullet */
+  }
+
   .actions a,
   .actions button {
     font-size: 1.1rem;
@@ -127,7 +152,7 @@
   
   p {
     font-size: 1.2rem;
-    padding-bottom: 10px;
+    padding-bottom: 20px;
   }
   
   label {

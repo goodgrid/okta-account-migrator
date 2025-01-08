@@ -12,6 +12,7 @@
     "express-rate-limit": "^7.5.0",
     "express-session": "^1.18.1",
     "helmet": "^8.0.0",
+    "jstransformer-markdown-it": "^3.0.0",
     "pug": "^3.0.3"
   }
 }

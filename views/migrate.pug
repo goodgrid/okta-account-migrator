@@ -12,18 +12,18 @@ html
   body
     header
       a(href='/')
-        h1 Okta Account Migrator
+        span#title Okta Account Migrator
 
     section#sidebar
       div.actions
         p
-            a(href='/') Introduction
+            a(href='/') Documentation
             
         p
             a(href='/migrate') Migrate batch
 
     main#content
-        h2 Migrate batch
+        h1 Migrate batch
 
         p 
           | Migrate a batch of accounts from the Okta source instance to the Okta target instance by entering the 
@@ -41,7 +41,7 @@ html
           action='/migrate',
           method='POST',
           hx-post='/migrate',
-          hx-target='h2'
+          hx-target='h1'
           hx-swap='afterend'
         )
           label(for='batchSize') Batch size:
@@ -49,7 +49,6 @@ html
 
           div.actions
             button(type='submit' hx-indicator="#spinner") Start
-          
             img#spinner(height='24px', class='htmx-indicator', src='/spinner.gif')
 
     script(src='https://unpkg.com/htmx.org@2' nonce=`${cspNonce}` crossorigin='anonymous')

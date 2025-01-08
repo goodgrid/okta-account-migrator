@@ -1,5 +1,6 @@
 import express from "express";
 import Okta from "./target.js";
+import source from "./sources/sources.js"
 import { isValidRequest, authenticateRequest, migrateAccounts, logger } from "./utils.js";
 import Config from "./config.js";
 
@@ -15,7 +16,7 @@ apiRoutes.post("/verify", express.json(), async (req, res) => {
 
       const credential = req.body.data.context.credential
 
-      const isUserVerified = await Okta.user.authenticate(Config.source, credential.username, credential.password)
+      const isUserVerified = await source.methods.authenticateUser(credential.username, credential.password)
 
       logger(`User ${isUserVerified ? "IS" : "IS NOT"} succesfully verified at source`)
 
@@ -42,7 +43,8 @@ apiRoutes.post("/verify", express.json(), async (req, res) => {
 userRoutes.get("/", authenticateRequest, (req, res) => {
    res.render('index', {
       cspNonce: req.cspNonce
-   });
+   })
+   
 })
 
 userRoutes.get("/login", (req, res) => {

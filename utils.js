@@ -23,7 +23,7 @@ export const logger = (message) => {
    3) Only hooks originating from the knows Target Okta are processed. Any other is ignored.
 */
 export const isValidRequest = (req) => {
-
+  
   if (req.headers[Config.target.hookAuthentication.header] !== Config.target.hookAuthentication.secret) {
     logger("Hook received with unagreed shared secret or missing header", Config.target.hookAuthentication.header)
     return false
